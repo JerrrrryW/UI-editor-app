@@ -1,0 +1,137 @@
+.preview-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.preview-header {
+  padding: 15px 20px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.preview-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.loading-indicator {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.preview-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.preview-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: white;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.spinner-ring {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s linear infinite;
+  position: absolute;
+}
+
+.spinner-ring:nth-child(2) {
+  width: 75px;
+  height: 75px;
+  border-top-color: var(--primary-color);
+  animation-duration: 1.5s;
+}
+
+.spinner-ring:nth-child(3) {
+  width: 90px;
+  height: 90px;
+  border-top-color: var(--secondary-color);
+  animation-duration: 2s;
+}
+
+.loading-text {
+  margin-top: 110px;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.preview-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  padding: 40px;
+  text-align: center;
+}
+
+.empty-icon {
+  margin-bottom: 20px;
+  opacity: 0.3;
+  color: var(--text-muted);
+}
+
+.empty-icon svg {
+  stroke-width: 1.5;
+}
+
+.preview-empty p {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
+
+.preview-empty small {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+

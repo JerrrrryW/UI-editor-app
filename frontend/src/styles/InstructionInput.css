@@ -1,0 +1,136 @@
+.instruction-input {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.input-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.input-header label {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.char-count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+#instruction-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 0.95rem;
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+#instruction-textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+#instruction-textarea:disabled {
+  background: var(--bg-tertiary);
+  cursor: not-allowed;
+}
+
+.suggestions-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.suggestions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.suggestions-header small {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.generate-suggestions-btn {
+  padding: 6px 14px;
+  background: var(--info-color);
+  color: white;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: var(--transition);
+}
+
+.generate-suggestions-btn:hover:not(:disabled) {
+  background: #138496;
+  transform: translateY(-1px);
+}
+
+.spinner-small {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+}
+
+.suggestions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.suggestion-btn {
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  border: 1px solid var(--border-color);
+  text-align: left;
+  transition: var(--transition);
+}
+
+.suggestion-btn:hover:not(:disabled) {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  transform: translateX(3px);
+}
+
+.submit-btn {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  color: white;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  font-size: 1rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.submit-btn:hover:not(:disabled) {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.submit-btn small {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
