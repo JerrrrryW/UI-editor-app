@@ -12,6 +12,7 @@ from api_clients import APIClientFactory
 from html_processor import HTMLProcessor
 from session_manager import SessionManager
 from instruction_classifier import InstructionClassifier
+from provider_validator import ProviderValidator
 
 # 创建 Flask 应用
 app = Flask(__name__)
@@ -750,34 +751,29 @@ Suggestions:
 @app.route('/api/models/<provider>', methods=['GET'])
 def get_available_models(provider):
     """获取指定提供商的可用模型列表"""
-    models_map = {
-        'openrouter': [
-            {'id': 'openai/gpt-4o', 'name': 'GPT-4o'},
-            {'id': 'openai/gpt-4o-mini', 'name': 'GPT-4o Mini'},
-            {'id': 'anthropic/claude-3.5-sonnet', 'name': 'Claude 3.5 Sonnet'},
-            {'id': 'google/gemini-2.0-flash-exp:free', 'name': 'Gemini 2.0 Flash (Free)'},
-        ],
-        'openai': [
-            {'id': 'gpt-4o', 'name': 'GPT-4o'},
-            {'id': 'gpt-4o-mini', 'name': 'GPT-4o Mini'},
-            {'id': 'gpt-4-turbo', 'name': 'GPT-4 Turbo'},
-        ],
-        'siliconflow': [
-            {'id': 'deepseek-ai/DeepSeek-V3', 'name': 'DeepSeek V3'},
-            {'id': 'Qwen/Qwen2.5-72B-Instruct', 'name': 'Qwen 2.5 72B'},
-            {'id': 'meta-llama/Meta-Llama-3.1-70B-Instruct', 'name': 'Llama 3.1 70B'},
-        ],
-        'gemini': [
-            {'id': 'gemini-2.0-flash-exp', 'name': 'Gemini 2.0 Flash'},
-            {'id': 'gemini-1.5-pro', 'name': 'Gemini 1.5 Pro'},
-            {'id': 'gemini-1.5-flash', 'name': 'Gemini 1.5 Flash'},
-        ]
-    }
-    
-    models = models_map.get(provider, [])
+    models = MODELS_MAP.get(provider, [])
     return jsonify({
         'success': True,
         'models': models
+    })
+
+
+@app.route('/api/provider-support', methods=['GET'])
+def provider_support_check():
+    """返回后端已配置的提供商及模型支持情况"""
+    providers = {}
+    for provider, models in MODELS_MAP.items():
+        api_key = Config.get_api_key(provider)
+        validation = ProviderValidator.validate(provider, api_key)
+        providers[provider] = {
+            'has_api_key': bool(api_key),
+            'default_model': Config.get_default_model(provider),
+            'models': models,
+            'validation': validation
+        }
+    return jsonify({
+        'success': True,
+        'providers': providers
     })
 
 

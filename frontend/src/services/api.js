@@ -143,6 +143,14 @@ export const downloadHTML = async (sessionId, historyId = null) => {
 };
 
 /**
+ * 获取后端提供商支持情况
+ */
+export const getProviderSupport = async () => {
+  const response = await api.get('/api/provider-support');
+  return response.data;
+};
+
+/**
  * 获取可用模型列表
  */
 export const getAvailableModels = async (provider) => {
