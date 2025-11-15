@@ -13,6 +13,7 @@ import {
   downloadHTML,
   healthCheck
 } from './services/api';
+import DOMPatcher from './services/DOMPatcher';
 import './styles/App.css';
 
 function App() {
@@ -28,6 +29,8 @@ function App() {
   const [backendStatus, setBackendStatus] = useState('checking');
   const [suggestions, setSuggestions] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [processingMode, setProcessingMode] = useState(null);  // 'fast' 或 'full'
+  const [estimatedTime, setEstimatedTime] = useState(null);  // 预估处理时间
 
   // 初始化会话
   useEffect(() => {
@@ -117,7 +120,7 @@ function App() {
     }
   };
 
-  // 修改指令处理
+  // 修改指令处理 - 支持快速模式和完整模式
   const handleInstructionSubmit = async (instruction) => {
     if (!currentHtml) {
       setError('请先上传 HTML 文件');
@@ -131,18 +134,58 @@ function App() {
 
     setLoading(true);
     setError('');
+    setProcessingMode(null);
+    setEstimatedTime(null);
 
     try {
+      // 调用智能路由API
       const response = await modifyHTML(sessionId, instruction, apiProvider, model);
       
       if (response.success) {
-        setCurrentHtml(response.html_content);
-        
-        // 刷新历史记录
-        const historyResponse = await getHistory(sessionId);
-        if (historyResponse.success) {
-          setHistory(historyResponse.history);
+        // 根据返回的模式处理
+        if (response.mode === 'fast' && response.operations) {
+          // 快速模式：应用DOM操作
+          setProcessingMode('fast');
+          setEstimatedTime('2-5秒');
+          
+          // 验证操作指令
+          const validation = DOMPatcher.validateOperations(response.operations);
+          if (!validation.valid) {
+            throw new Error(`操作指令验证失败: ${validation.error}`);
+          }
+          
+          // 应用DOM操作
+          const patchResult = await DOMPatcher.applyOperations(currentHtml, response.operations);
+          
+          if (patchResult.success) {
+            setCurrentHtml(patchResult.html);
+            
+            // 刷新历史记录
+            const historyResponse = await getHistory(sessionId);
+            if (historyResponse.success) {
+              setHistory(historyResponse.history);
+            }
+          } else {
+            throw new Error(patchResult.error);
+          }
+          
+        } else if (response.mode === 'full' && response.html_content) {
+          // 完整模式：直接使用返回的HTML
+          setProcessingMode('full');
+          setEstimatedTime('10-30秒');
+          
+          setCurrentHtml(response.html_content);
+          
+          // 刷新历史记录
+          const historyResponse = await getHistory(sessionId);
+          if (historyResponse.success) {
+            setHistory(historyResponse.history);
+          }
+          
+        } else {
+          throw new Error('API返回格式错误');
         }
+        
       } else {
         // 如果是会话问题，提示用户重新上传
         if (response.error && response.error.includes('会话')) {
@@ -160,6 +203,8 @@ function App() {
       setError('修改失败：' + (error.response?.data?.error || error.message));
     } finally {
       setLoading(false);
+      setProcessingMode(null);
+      setEstimatedTime(null);
     }
   };
 
@@ -309,6 +354,8 @@ function App() {
               suggestions={suggestions}
               loadingSuggestions={loadingSuggestions}
               hasHtml={!!currentHtml}
+              processingMode={processingMode}
+              estimatedTime={estimatedTime}
             />
           </div>
 

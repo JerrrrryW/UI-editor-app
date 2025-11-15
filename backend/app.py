@@ -11,6 +11,7 @@ from config import Config
 from api_clients import APIClientFactory
 from html_processor import HTMLProcessor
 from session_manager import SessionManager
+from instruction_classifier import InstructionClassifier
 
 # 创建 Flask 应用
 app = Flask(__name__)
@@ -33,6 +34,31 @@ CORS(app, resources={
 # 初始化管理器
 session_manager = SessionManager()
 html_processor = HTMLProcessor()
+
+# 提供商与可用模型映射
+MODELS_MAP = {
+    'openrouter': [
+        {'id': 'openai/gpt-4o', 'name': 'GPT-4o'},
+        {'id': 'openai/gpt-4o-mini', 'name': 'GPT-4o Mini'},
+        {'id': 'anthropic/claude-3.5-sonnet', 'name': 'Claude 3.5 Sonnet'},
+        {'id': 'google/gemini-2.0-flash-exp:free', 'name': 'Gemini 2.0 Flash (Free)'},
+    ],
+    'openai': [
+        {'id': 'gpt-4o', 'name': 'GPT-4o'},
+        {'id': 'gpt-4o-mini', 'name': 'GPT-4o Mini'},
+        {'id': 'gpt-4-turbo', 'name': 'GPT-4 Turbo'},
+    ],
+    'siliconflow': [
+        {'id': 'deepseek-ai/DeepSeek-V3', 'name': 'DeepSeek V3'},
+        {'id': 'Qwen/Qwen2.5-72B-Instruct', 'name': 'Qwen 2.5 72B'},
+        {'id': 'meta-llama/Meta-Llama-3.1-70B-Instruct', 'name': 'Llama 3.1 70B'},
+    ],
+    'gemini': [
+        {'id': 'gemini-2.0-flash-exp', 'name': 'Gemini 2.0 Flash'},
+        {'id': 'gemini-1.5-pro', 'name': 'Gemini 1.5 Pro'},
+        {'id': 'gemini-1.5-flash', 'name': 'Gemini 1.5 Flash'},
+    ]
+}
 
 
 @app.route('/api/health', methods=['GET'])
@@ -130,7 +156,165 @@ def upload_html():
 @app.route('/api/modify', methods=['POST'])
 def modify_html():
     """
-    修改 HTML
+    修改 HTML - 智能路由版本
+    自动选择快速模式或完整模式
+    Body: {
+        "session_id": "...",
+        "instruction": "...",
+        "api_provider": "openrouter|openai|siliconflow|gemini",
+        "model": "...",
+        "force_mode": "fast|full" (可选，强制使用某种模式)
+    }
+    """
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': '请求数据为空'
+            }), 400
+        
+        session_id = data.get('session_id')
+        instruction = data.get('instruction')
+        api_provider = data.get('api_provider', 'openrouter')
+        model = data.get('model')
+        force_mode = data.get('force_mode')  # 新增：允许强制模式
+        
+        # 验证必需参数
+        if not session_id:
+            return jsonify({'success': False, 'error': '缺少 session_id'}), 400
+        if not instruction:
+            return jsonify({'success': False, 'error': '缺少 instruction'}), 400
+        
+        # 获取会话
+        session = session_manager.get_session(session_id)
+        if not session:
+            return jsonify({'success': False, 'error': '无效的会话 ID'}), 404
+        
+        # 获取当前 HTML
+        current_html = session_manager.get_current_html(session_id)
+        if not current_html:
+            return jsonify({
+                'success': False,
+                'error': '请先上传 HTML 文件'
+            }), 400
+        
+        # 获取 API 密钥
+        api_key = Config.get_api_key(api_provider)
+        if not api_key:
+            return jsonify({
+                'success': False,
+                'error': f'未配置 {api_provider} API 密钥'
+            }), 400
+        
+        # 使用默认模型（如果未指定）
+        if not model:
+            model = Config.get_default_model(api_provider)
+        
+        # 创建 API 客户端
+        try:
+            client = APIClientFactory.create_client(
+                provider=api_provider,
+                api_key=api_key,
+                model=model
+            )
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'error': f'创建 API 客户端失败: {str(e)}'
+            }), 500
+        
+        # 智能路由：决定使用快速模式还是完整模式
+        use_fast_mode = False
+        selected_mode = 'full'  # 默认完整模式
+        
+        if force_mode == 'fast':
+            use_fast_mode = True
+            selected_mode = 'fast'
+        elif force_mode == 'full':
+            use_fast_mode = False
+            selected_mode = 'full'
+        else:
+            # 使用分类器自动判断
+            mode, classify_meta = InstructionClassifier.classify(instruction)
+            use_fast_mode = (mode == 'fast')
+            selected_mode = mode
+        
+        # 尝试快速模式
+        if use_fast_mode:
+            fast_response = client.generate_fast_operations(instruction, current_html)
+            
+            if fast_response.success:
+                # 验证返回的JSON
+                import json
+                try:
+                    operations = json.loads(fast_response.content)
+                    if isinstance(operations, list) and len(operations) > 0:
+                        # 快速模式成功，返回操作指令
+                        return jsonify({
+                            'success': True,
+                            'mode': 'fast',
+                            'operations': operations,
+                            'metadata': fast_response.metadata
+                        })
+                except json.JSONDecodeError:
+                    pass  # JSON解析失败，降级到完整模式
+            
+            # 快速模式失败，自动降级到完整模式
+            # 继续执行下面的完整模式逻辑
+        
+        # 完整模式：调用 LLM 修改 HTML
+        response = client.modify_html(instruction, current_html)
+        selected_mode = 'full'  # 标记实际使用了完整模式
+        
+        if not response.success:
+            return jsonify({
+                'success': False,
+                'error': response.error
+            }), 500
+        
+        # 清理返回的 HTML
+        modified_html = html_processor.clean_markdown_code_block(response.content)
+        
+        # 验证修改后的 HTML
+        is_valid, error_msg = html_processor.validate_html(modified_html)
+        if not is_valid:
+            # 如果验证失败，返回错误 HTML
+            modified_html = html_processor.format_error_html(
+                f"LLM 返回的 HTML 无效: {error_msg}"
+            )
+        
+        # 添加到历史
+        session_manager.add_history(
+            session_id=session_id,
+            instruction=instruction,
+            modified_html=modified_html,
+            api_provider=api_provider,
+            model=model,
+            change_description=None,  # 预留字段
+            mode=selected_mode  # 新增：记录使用的模式
+        )
+        
+        return jsonify({
+            'success': True,
+            'mode': 'full',  # 完整模式
+            'html_content': modified_html,
+            'metadata': response.metadata
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'服务器错误: {str(e)}'
+        }), 500
+
+
+@app.route('/api/modify-fast', methods=['POST'])
+def modify_html_fast():
+    """
+    快速模式修改 HTML
+    生成JSON操作指令而非完整HTML
     Body: {
         "session_id": "...",
         "instruction": "...",
@@ -196,46 +380,56 @@ def modify_html():
                 'error': f'创建 API 客户端失败: {str(e)}'
             }), 500
         
-        # 调用 LLM 修改 HTML
-        response = client.modify_html(instruction, current_html)
+        # 调用 LLM 生成操作指令
+        response = client.generate_fast_operations(instruction, current_html)
         
         if not response.success:
             return jsonify({
                 'success': False,
-                'error': response.error
+                'error': response.error,
+                'fallback_needed': True  # 提示前端需要降级
             }), 500
         
-        # 清理返回的 HTML
-        modified_html = html_processor.clean_markdown_code_block(response.content)
+        # 验证返回的是否为有效JSON
+        import json
+        try:
+            operations = json.loads(response.content)
+            if not isinstance(operations, list):
+                # 不是数组，返回失败要求降级
+                return jsonify({
+                    'success': False,
+                    'error': 'LLM返回格式无效',
+                    'fallback_needed': True
+                }), 500
+            
+            # 如果LLM返回空数组，表示认为太复杂，需要降级
+            if len(operations) == 0:
+                return jsonify({
+                    'success': False,
+                    'error': '指令过于复杂，需要完整模式处理',
+                    'fallback_needed': True
+                }), 500
+                
+        except json.JSONDecodeError:
+            return jsonify({
+                'success': False,
+                'error': 'JSON解析失败',
+                'fallback_needed': True
+            }), 500
         
-        # 验证修改后的 HTML
-        is_valid, error_msg = html_processor.validate_html(modified_html)
-        if not is_valid:
-            # 如果验证失败，返回错误 HTML
-            modified_html = html_processor.format_error_html(
-                f"LLM 返回的 HTML 无效: {error_msg}"
-            )
-        
-        # 添加到历史
-        session_manager.add_history(
-            session_id=session_id,
-            instruction=instruction,
-            modified_html=modified_html,
-            api_provider=api_provider,
-            model=model,
-            change_description=None  # 预留字段
-        )
-        
+        # 返回操作指令（前端负责执行）
         return jsonify({
             'success': True,
-            'html_content': modified_html,
+            'mode': 'fast',
+            'operations': operations,
             'metadata': response.metadata
         })
         
     except Exception as e:
         return jsonify({
             'success': False,
-            'error': f'服务器错误: {str(e)}'
+            'error': f'服务器错误: {str(e)}',
+            'fallback_needed': True
         }), 500
 
 

@@ -56,7 +56,7 @@ class SessionManager:
     
     def add_history(self, session_id: str, instruction: str, 
                    modified_html: str, api_provider: str, model: str,
-                   change_description: Optional[dict] = None):
+                   change_description: Optional[dict] = None, mode: str = 'full'):
         """
         添加修改历史
         
@@ -67,6 +67,7 @@ class SessionManager:
             api_provider: API 提供商
             model: 使用的模型
             change_description: 变更描述（预留字段）
+            mode: 使用的模式 ('fast' 或 'full')
         """
         session = self.get_session(session_id)
         if not session:
@@ -83,7 +84,8 @@ class SessionManager:
             'after_html': modified_html,
             'api_provider': api_provider,
             'model': model,
-            'change_description': change_description  # 预留字段
+            'change_description': change_description,  # 预留字段
+            'mode': mode  # 新增：记录使用的模式
         }
         
         session['history'].append(history_entry)
@@ -110,7 +112,8 @@ class SessionManager:
                 'timestamp': entry['timestamp'],
                 'instruction': entry['instruction'],
                 'api_provider': entry['api_provider'],
-                'model': entry['model']
+                'model': entry['model'],
+                'mode': entry.get('mode', 'full')  # 兼容旧数据
             }
             for entry in session['history']
         ]

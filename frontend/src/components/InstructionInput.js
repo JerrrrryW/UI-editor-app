@@ -8,7 +8,9 @@ const InstructionInput = ({
   loading,
   suggestions,
   loadingSuggestions,
-  hasHtml
+  hasHtml,
+  processingMode,
+  estimatedTime
 }) => {
   const [instruction, setInstruction] = useState('');
 
@@ -45,7 +47,24 @@ const InstructionInput = ({
         disabled={disabled || loading}
         rows={4}
       />
-
+      <button
+        className="submit-btn"
+        onClick={handleSubmit}
+        disabled={disabled || loading || !instruction.trim()}
+      >
+        {loading ? (
+          <>
+            <span className="spinner"></span>
+            {processingMode === 'fast' ? '快速处理中...' : '完整处理中...'}
+            {estimatedTime && <small className="estimated-time">预计 {estimatedTime}</small>}
+          </>
+        ) : (
+          <>
+            执行修改 <small>(Ctrl+Enter)</small>
+          </>
+        )}
+      </button>
+      
       <div className="suggestions-section">
         <div className="suggestions-header">
           <small>AI 修改建议</small>
@@ -81,22 +100,7 @@ const InstructionInput = ({
         )}
       </div>
 
-      <button
-        className="submit-btn"
-        onClick={handleSubmit}
-        disabled={disabled || loading || !instruction.trim()}
-      >
-        {loading ? (
-          <>
-            <span className="spinner"></span>
-            处理中...
-          </>
-        ) : (
-          <>
-            执行修改 <small>(Ctrl+Enter)</small>
-          </>
-        )}
-      </button>
+
     </div>
   );
 };

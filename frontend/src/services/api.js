@@ -63,10 +63,26 @@ export const uploadHTML = async (sessionId, htmlContent) => {
 };
 
 /**
- * 修改 HTML
+ * 修改 HTML - 智能路由版本
+ * 自动选择快速模式或完整模式
  */
-export const modifyHTML = async (sessionId, instruction, apiProvider, model) => {
+export const modifyHTML = async (sessionId, instruction, apiProvider, model, forceMode = null) => {
   const response = await api.post('/api/modify', {
+    session_id: sessionId,
+    instruction,
+    api_provider: apiProvider,
+    model,
+    force_mode: forceMode,  // 可选：强制使用某种模式
+  });
+  return response.data;
+};
+
+/**
+ * 快速模式修改 HTML（直接调用）
+ * 返回JSON操作指令
+ */
+export const modifyHTMLFast = async (sessionId, instruction, apiProvider, model) => {
+  const response = await api.post('/api/modify-fast', {
     session_id: sessionId,
     instruction,
     api_provider: apiProvider,
