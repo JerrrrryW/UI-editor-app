@@ -151,6 +151,35 @@ export const getProviderSupport = async () => {
 };
 
 /**
+ * 数据集：获取状态
+ */
+export const getDatasetStatus = async () => {
+  const response = await api.get('/api/dataset/status');
+  return response.data;
+};
+
+/**
+ * 数据集：按 prompt 搜索样本
+ */
+export const searchDatasetSamples = async (query = '', limit = 50) => {
+  const response = await api.get('/api/dataset/search', {
+    params: { query, limit },
+  });
+  return response.data;
+};
+
+/**
+ * 数据集：选择样本并加载到会话
+ */
+export const selectDatasetSample = async (sessionId, sampleId) => {
+  const response = await api.post('/api/dataset/select', {
+    session_id: sessionId,
+    sample_id: sampleId,
+  });
+  return response.data;
+};
+
+/**
  * 获取可用模型列表
  */
 export const getAvailableModels = async (provider) => {

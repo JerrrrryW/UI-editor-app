@@ -8,6 +8,9 @@ from dotenv import load_dotenv
 # 加载环境变量
 load_dotenv()
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
 class Config:
     """应用配置类"""
     
@@ -39,6 +42,10 @@ class Config:
     
     # 会话配置
     MAX_HISTORY_SIZE = 50  # 最大历史记录数
+
+    # 数据集配置
+    DATASET_DIR = os.getenv('DATASET_DIR', os.path.join(BASE_DIR, '00-ui-datasets', 'webcode2m-natural-prompts', 'train'))
+    DATASET_ARROW_FILE = os.getenv('DATASET_ARROW_FILE', os.path.join(DATASET_DIR, 'data-00000-of-00001.arrow'))
     
     @classmethod
     def get_api_key(cls, provider):

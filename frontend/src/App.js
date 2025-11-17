@@ -4,6 +4,7 @@ import InstructionInput from './components/InstructionInput';
 import ApiSelector from './components/ApiSelector';
 import ComparisonView from './components/ComparisonView';
 import HistoryPanel from './components/HistoryPanel';
+import DatasetSampleModal from './components/DatasetSampleModal';
 import {
   createSession,
   uploadHTML,
@@ -31,6 +32,7 @@ function App() {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [processingMode, setProcessingMode] = useState(null);  // 'fast' 或 'full'
   const [estimatedTime, setEstimatedTime] = useState(null);  // 预估处理时间
+  const [isDatasetModalOpen, setDatasetModalOpen] = useState(false);
 
   // 初始化会话
   useEffect(() => {
@@ -119,6 +121,15 @@ function App() {
       setLoading(false);
     }
   };
+
+  const handleDatasetSampleApplied = useCallback((htmlContent, sampleMeta) => {
+    setOriginalHtml(htmlContent);
+    setCurrentHtml(htmlContent);
+    setHistory([]);
+    setSuggestions([]);
+    setFileName(sampleMeta ? `数据集样本 #${sampleMeta.id}` : '数据集样本');
+    setError('');
+  }, []);
 
   // 修改指令处理 - 支持快速模式和完整模式
   const handleInstructionSubmit = async (instruction) => {
@@ -335,6 +346,14 @@ function App() {
               onFileUpload={handleFileUpload}
               disabled={loading || backendStatus !== 'connected'}
             />
+            <button
+              type="button"
+              className="action-btn secondary"
+              onClick={() => setDatasetModalOpen(true)}
+              disabled={loading || backendStatus !== 'connected'}
+            >
+              从数据集选择样本
+            </button>
           </div>
 
           <div className="control-section">
@@ -397,6 +416,13 @@ function App() {
           Powered by React + Flask | 支持 OpenRouter、OpenAI、SiliconFlow、Gemini
         </p>
       </footer>
+
+      <DatasetSampleModal
+        open={isDatasetModalOpen}
+        onClose={() => setDatasetModalOpen(false)}
+        sessionId={sessionId}
+        onSampleApplied={handleDatasetSampleApplied}
+      />
     </div>
   );
 }

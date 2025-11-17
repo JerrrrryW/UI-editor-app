@@ -195,6 +195,21 @@
   box-shadow: var(--shadow-sm);
 }
 
+.action-btn.secondary {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px dashed var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.action-btn.secondary:hover:not(:disabled) {
+  background: var(--bg-secondary);
+  color: var(--primary-color);
+}
+
 .action-btn:hover:not(:disabled) {
   background: var(--secondary-color);
   box-shadow: var(--shadow-md);

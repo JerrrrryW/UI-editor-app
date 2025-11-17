@@ -12,6 +12,7 @@ from api_clients import APIClientFactory
 from html_processor import HTMLProcessor
 from session_manager import SessionManager
 from instruction_classifier import InstructionClassifier
+from dataset_loader import get_dataset_loader, DatasetLoaderError
 from provider_validator import ProviderValidator
 
 # 创建 Flask 应用
@@ -775,6 +776,120 @@ def provider_support_check():
         'success': True,
         'providers': providers
     })
+
+
+@app.route('/api/dataset/status', methods=['GET'])
+def dataset_status():
+    """返回数据集状态信息"""
+    try:
+        loader = get_dataset_loader()
+        return jsonify({
+            'success': True,
+            'ready': loader.ready,
+            'total': loader.size,
+            'path': Config.DATASET_ARROW_FILE
+        })
+    except DatasetLoaderError as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/dataset/samples', methods=['GET'])
+def dataset_samples():
+    """分页获取数据集样本列表"""
+    try:
+        loader = get_dataset_loader()
+        offset = int(request.args.get('offset', 0))
+        limit = int(request.args.get('limit', 20))
+        data = loader.list_samples(offset=offset, limit=limit)
+        return jsonify({
+            'success': True,
+            'total': data['total'],
+            'samples': data['samples']
+        })
+    except DatasetLoaderError as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+    except ValueError:
+        return jsonify({
+            'success': False,
+            'error': 'offset 和 limit 必须为整数'
+        }), 400
+
+
+@app.route('/api/dataset/search', methods=['GET'])
+def dataset_search():
+    """按 prompt 关键字搜索样本"""
+    try:
+        loader = get_dataset_loader()
+        query = request.args.get('query', '').strip()
+        limit = int(request.args.get('limit', 50))
+        data = loader.search_samples(query=query, limit=limit)
+        return jsonify({
+            'success': True,
+            'total': data['total'],
+            'matched': data['matched'],
+            'samples': data['samples']
+        })
+    except DatasetLoaderError as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    except ValueError:
+        return jsonify({'success': False, 'error': 'limit 必须为整数'}), 400
+
+
+@app.route('/api/dataset/select', methods=['POST'])
+def dataset_select():
+    """将指定数据集样本加载到会话中"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': '请求数据为空'}), 400
+
+        session_id = data.get('session_id')
+        sample_id = data.get('sample_id')
+
+        if not session_id:
+            return jsonify({'success': False, 'error': '缺少 session_id'}), 400
+        if sample_id is None:
+            return jsonify({'success': False, 'error': '缺少 sample_id'}), 400
+
+        session = session_manager.get_session(session_id)
+        if not session:
+            return jsonify({'success': False, 'error': '无效的会话 ID'}), 404
+
+        loader = get_dataset_loader()
+        sample = loader.get_sample(int(sample_id))
+        html_content = sample.get('html')
+
+        if not html_content:
+            return jsonify({'success': False, 'error': '该样本不包含 HTML 内容'}), 400
+
+        cleaned_html = html_processor.clean_markdown_code_block(html_content)
+        is_valid, error_msg = html_processor.validate_html(cleaned_html)
+
+        if not is_valid:
+            return jsonify({'success': False, 'error': f'HTML 验证失败: {error_msg}'}), 400
+
+        session_manager.set_original_html(session_id, cleaned_html)
+        # 清空历史记录
+        session['history'] = []
+
+        return jsonify({
+            'success': True,
+            'html_content': cleaned_html,
+            'sample': sample
+        })
+
+    except DatasetLoaderError as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    except ValueError:
+        return jsonify({'success': False, 'error': 'sample_id 必须为整数'}), 400
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'服务器错误: {str(e)}'}), 500
 
 
 if __name__ == '__main__':

@@ -1,0 +1,197 @@
+{
+  "builder_name": "json",
+  "citation": "",
+  "config_name": "rishi-1001--webcode2m-natural-prompts",
+  "dataset_size": 41533265,
+  "description": "",
+  "download_checksums": {
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000001.jsonl": {
+      "num_bytes": 26562,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000002.jsonl": {
+      "num_bytes": 26058,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000003.jsonl": {
+      "num_bytes": 2245052,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000004.jsonl": {
+      "num_bytes": 1655649,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000005.jsonl": {
+      "num_bytes": 675990,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000006.jsonl": {
+      "num_bytes": 825892,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000007.jsonl": {
+      "num_bytes": 901517,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000008.jsonl": {
+      "num_bytes": 670832,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000009.jsonl": {
+      "num_bytes": 2554071,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000010.jsonl": {
+      "num_bytes": 2341428,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000011.jsonl": {
+      "num_bytes": 743403,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000012.jsonl": {
+      "num_bytes": 768983,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000013.jsonl": {
+      "num_bytes": 734813,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000014.jsonl": {
+      "num_bytes": 692779,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000015.jsonl": {
+      "num_bytes": 804303,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000016.jsonl": {
+      "num_bytes": 673349,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000017.jsonl": {
+      "num_bytes": 853110,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000018.jsonl": {
+      "num_bytes": 825657,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000019.jsonl": {
+      "num_bytes": 754829,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000020.jsonl": {
+      "num_bytes": 761789,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000021.jsonl": {
+      "num_bytes": 1710460,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000022.jsonl": {
+      "num_bytes": 810147,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000023.jsonl": {
+      "num_bytes": 721413,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000024.jsonl": {
+      "num_bytes": 2578381,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000025.jsonl": {
+      "num_bytes": 4134189,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000026.jsonl": {
+      "num_bytes": 697494,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000027.jsonl": {
+      "num_bytes": 748941,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000028.jsonl": {
+      "num_bytes": 844948,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000029.jsonl": {
+      "num_bytes": 1742304,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000030.jsonl": {
+      "num_bytes": 705841,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000031.jsonl": {
+      "num_bytes": 1820574,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000032.jsonl": {
+      "num_bytes": 749270,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000033.jsonl": {
+      "num_bytes": 782375,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000034.jsonl": {
+      "num_bytes": 2110628,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000035.jsonl": {
+      "num_bytes": 2043411,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000036.jsonl": {
+      "num_bytes": 885475,
+      "checksum": null
+    },
+    "https://huggingface.co/datasets/rishi-1001/webcode2m-natural-prompts/resolve/da738b5e4dba1dc616da9d501e85deab5e01fc5e/data/shard-000037.jsonl": {
+      "num_bytes": 664036,
+      "checksum": null
+    }
+  },
+  "download_size": 43285953,
+  "features": {
+    "prompt": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "html": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "original_index": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "dataset_source": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "prompt_type": {
+      "dtype": "string",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 84819218,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 41533265,
+      "num_examples": 2843,
+      "dataset_name": "json"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}

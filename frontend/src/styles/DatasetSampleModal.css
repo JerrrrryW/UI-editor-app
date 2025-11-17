@@ -1,0 +1,142 @@
+.dataset-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.dataset-modal {
+  width: min(720px, 90vw);
+  max-height: 80vh;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-primary, #1f2937);
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-secondary, #6b7280);
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.search-btn {
+  border: none;
+  background: var(--primary-color, #4f46e5);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.search-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.result-count {
+  font-size: 0.9rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.dataset-error {
+  margin: 0 24px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(220, 53, 69, 0.1);
+  color: #b42318;
+}
+
+.sample-list {
+  padding: 8px 24px 24px;
+  overflow-y: auto;
+}
+
+.sample-card {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 12px;
+  background: #f9fafb;
+}
+
+.sample-info {
+  flex: 1;
+}
+
+.sample-prompt {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  color: var(--text-primary, #111827);
+  line-height: 1.5;
+}
+
+.sample-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.select-btn {
+  border: none;
+  background: var(--primary-color, #667eea);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.select-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.empty {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--text-secondary, #6b7280);
+}
