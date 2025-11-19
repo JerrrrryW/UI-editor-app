@@ -1,195 +1,154 @@
 """
 会话管理模块
-管理用户会话和修改历史
+负责存储任务上下文、组件库、副本栈和 UI-diff 历史
 """
+from __future__ import annotations
+
+import copy
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, Optional, List
 import uuid
 
+from data.defaults import get_default_component_library
+
+
 class SessionManager:
-    """会话管理器类"""
-    
     def __init__(self):
-        """初始化会话管理器"""
         self.sessions: Dict[str, dict] = {}
-    
+
     def create_session(self) -> str:
-        """
-        创建新会话
-        
-        Returns:
-            会话 ID
-        """
         session_id = str(uuid.uuid4())
         self.sessions[session_id] = {
-            'current_html': None,
-            'original_html': None,
-            'history': [],
-            'created_at': datetime.now().isoformat()
+            "context": None,
+            "component_library": get_default_component_library(),
+            "schema": None,
+            "stage_plan": [],
+            "info_queue": [],
+            "context_summary": None,
+            "diff_history": [],
+            "undo_stack": [],
+            "last_diff": None,
+            "created_at": datetime.utcnow().isoformat(),
         }
         return session_id
-    
+
     def get_session(self, session_id: str) -> Optional[dict]:
-        """
-        获取会话信息
-        
-        Args:
-            session_id: 会话 ID
-            
-        Returns:
-            会话数据或 None
-        """
         return self.sessions.get(session_id)
-    
-    def set_original_html(self, session_id: str, html_content: str):
-        """
-        设置原始 HTML
-        
-        Args:
-            session_id: 会话 ID
-            html_content: HTML 内容
-        """
+
+    # --- context / components -------------------------------------------------
+
+    def update_context(self, session_id: str, context: dict, summary: dict):
         session = self.get_session(session_id)
         if session:
-            session['original_html'] = html_content
-            session['current_html'] = html_content
-    
-    def add_history(self, session_id: str, instruction: str, 
-                   modified_html: str, api_provider: str, model: str,
-                   change_description: Optional[dict] = None, mode: str = 'full'):
-        """
-        添加修改历史
-        
-        Args:
-            session_id: 会话 ID
-            instruction: 修改指令
-            modified_html: 修改后的 HTML
-            api_provider: API 提供商
-            model: 使用的模型
-            change_description: 变更描述（预留字段）
-            mode: 使用的模式 ('fast' 或 'full')
-        """
+            session["context"] = context
+            session["context_summary"] = summary
+
+    def set_component_library(self, session_id: str, component_library: List[dict]):
+        session = self.get_session(session_id)
+        if session:
+            session["component_library"] = component_library or get_default_component_library()
+
+    def get_component_library(self, session_id: str) -> List[dict]:
+        session = self.get_session(session_id)
+        if not session:
+            return get_default_component_library()
+        return session.get("component_library", get_default_component_library())
+
+    # --- schema / info queue --------------------------------------------------
+
+    def set_schema(
+        self,
+        session_id: str,
+        schema: dict,
+        info_queue: Optional[List[dict]] = None,
+        stage_plan: Optional[List[dict]] = None,
+        push_undo: bool = False,
+        reset_undo: bool = False,
+    ):
         session = self.get_session(session_id)
         if not session:
             return
-        
-        # 获取当前 HTML 作为这次修改的 "before"
-        before_html = session['current_html']
-        
-        history_entry = {
-            'id': str(uuid.uuid4()),
-            'timestamp': datetime.now().isoformat(),
-            'instruction': instruction,
-            'before_html': before_html,
-            'after_html': modified_html,
-            'api_provider': api_provider,
-            'model': model,
-            'change_description': change_description,  # 预留字段
-            'mode': mode  # 新增：记录使用的模式
-        }
-        
-        session['history'].append(history_entry)
-        session['current_html'] = modified_html
-    
-    def get_history(self, session_id: str) -> List[dict]:
-        """
-        获取修改历史
-        
-        Args:
-            session_id: 会话 ID
-            
-        Returns:
-            历史记录列表
-        """
-        session = self.get_session(session_id)
-        if not session:
-            return []
-        
-        # 返回简化的历史信息（不包含完整 HTML）
-        return [
-            {
-                'id': entry['id'],
-                'timestamp': entry['timestamp'],
-                'instruction': entry['instruction'],
-                'api_provider': entry['api_provider'],
-                'model': entry['model'],
-                'mode': entry.get('mode', 'full')  # 兼容旧数据
-            }
-            for entry in session['history']
-        ]
-    
-    def revert_to_history(self, session_id: str, history_id: str) -> Optional[str]:
-        """
-        回退到指定历史版本
-        
-        Args:
-            session_id: 会话 ID
-            history_id: 历史记录 ID
-            
-        Returns:
-            回退后的 HTML 或 None
-        """
-        session = self.get_session(session_id)
-        if not session:
-            return None
-        
-        # 查找历史记录
-        for entry in session['history']:
-            if entry['id'] == history_id:
-                # 更新当前 HTML
-                session['current_html'] = entry['after_html']
-                return entry['after_html']
-        
-        return None
-    
-    def get_current_html(self, session_id: str) -> Optional[str]:
-        """
-        获取当前 HTML
-        
-        Args:
-            session_id: 会话 ID
-            
-        Returns:
-            当前 HTML 或 None
-        """
+        if push_undo and session.get("schema"):
+            snapshot = copy.deepcopy(session["schema"])
+            session["undo_stack"].append(snapshot)
+        if reset_undo:
+            session["undo_stack"] = []
+        session["schema"] = schema
+        if info_queue is not None:
+            session["info_queue"] = info_queue
+        if stage_plan is not None:
+            session["stage_plan"] = stage_plan
+
+    def get_schema(self, session_id: str) -> Optional[dict]:
         session = self.get_session(session_id)
         if session:
-            return session['current_html']
-        return None
-    
-    def get_original_html(self, session_id: str) -> Optional[str]:
-        """
-        获取原始 HTML
-        
-        Args:
-            session_id: 会话 ID
-            
-        Returns:
-            原始 HTML 或 None
-        """
-        session = self.get_session(session_id)
-        if session:
-            return session['original_html']
-        return None
-    
-    def get_history_entry(self, session_id: str, history_id: str) -> Optional[dict]:
-        """
-        获取完整的历史记录条目
-        
-        Args:
-            session_id: 会话 ID
-            history_id: 历史记录 ID
-            
-        Returns:
-            历史记录条目或 None
-        """
-        session = self.get_session(session_id)
-        if not session:
-            return None
-        
-        for entry in session['history']:
-            if entry['id'] == history_id:
-                return entry
-        
+            return session.get("schema")
         return None
 
+    def get_stage_plan(self, session_id: str) -> List[dict]:
+        session = self.get_session(session_id)
+        if session:
+            return session.get("stage_plan", [])
+        return []
+
+    def get_info_queue(self, session_id: str) -> List[dict]:
+        session = self.get_session(session_id)
+        if session:
+            return session.get("info_queue", [])
+        return []
+
+    # --- diff history --------------------------------------------------------
+
+    def append_diff_history(self, session_id: str, entry: dict):
+        session = self.get_session(session_id)
+        if not session:
+            return
+        entry_with_id = {
+            "id": str(uuid.uuid4()),
+            "timestamp": datetime.utcnow().isoformat(),
+            **entry,
+        }
+        session["diff_history"].append(entry_with_id)
+        session["last_diff"] = entry_with_id
+        # 控制长度，避免无限增长
+        if len(session["diff_history"]) > 40:
+            session["diff_history"] = session["diff_history"][-40:]
+
+    def get_diff_history(self, session_id: str) -> List[dict]:
+        session = self.get_session(session_id)
+        if session:
+            return session.get("diff_history", [])
+        return []
+
+    def get_last_diff(self, session_id: str) -> Optional[dict]:
+        session = self.get_session(session_id)
+        if session:
+            return session.get("last_diff")
+        return None
+
+    # --- undo ----------------------------------------------------------------
+
+    def undo(self, session_id: str) -> Optional[dict]:
+        session = self.get_session(session_id)
+        if not session or not session.get("undo_stack"):
+            return None
+        schema = session["undo_stack"].pop()
+        session["schema"] = schema
+        session["last_diff"] = {
+            "id": "undo",
+            "timestamp": datetime.utcnow().isoformat(),
+            "summary": "撤销上一步",
+        }
+        return schema
+
+    # --- debug payload -------------------------------------------------------
+
+    def debug_payload(self, session_id: str) -> dict:
+        session = self.get_session(session_id) or {}
+        return {
+            "contextSummary": session.get("context_summary"),
+            "infoQueue": session.get("info_queue", []),
+            "stagePlan": session.get("stage_plan", []),
+            "diffHistory": session.get("diff_history", []),
+            "schemaVersion": session.get("schema", {}).get("version") if session.get("schema") else None,
+        }

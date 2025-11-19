@@ -1,163 +1,126 @@
-# 🎨 HTML 智能编辑器
+# 🎛️ 复杂任务界面生成 & 自然语言编辑 MVP
 
-一个基于 React + Flask 的全栈应用，使用自然语言和 LLM API 来智能修改 HTML 网页。
+一个用于论文原型的内部设计工具 demo：输入任务描述 / Persona / 组件库，即可生成多页面栅格布局，并用自然语言指令进行 UI-diff 级别的可控编辑。
 
-## ✨ 主要功能
+## ✨ 亮点功能（V0.1）
 
-- 📁 **文件上传** - 支持拖放或点击上传 HTML 文件
-- 🤖 **多 API 支持** - 集成 OpenRouter、OpenAI、SiliconFlow、Gemini
-- ✏️ **自然语言修改** - 用人类语言描述想要的修改
-- 👁️ **实时预览** - 左右分屏对比原始和修改后的效果
-- 📜 **修改历史** - 记录所有修改，支持回退和下载
-- ⬇️ **一键下载** - 下载任意历史版本的 HTML 文件
+- **F1 任务上下文**：任务需求 + Persona + 场景模板 + 组件库 JSON，内置多套 Persona/场景/组件库，可一键预览摘要。
+- **F2 多阶段生成**：根据场景自动拆解 2–3 个 Page，组装 Section → 组件 → 布局，支持 12 栅格启发式排版，并暴露 Priority Queue 调试视图。
+- **F3 自然语言编辑**：内置指令解析器（Add/Remove/Move/Update），生成 UI-diff JSON 并落地到 Schema，自动处理列宽冲突、标注修改组件。
+- **F4 跨页面一致性**：指令中提到“保持一致 / 所有 XX”，会根据 role 扩散到同名组件，模拟 role-based propagation。
+- **F5 调试 & 导出**：研究模式展示 Priority Queue、UI-diff 历史、上下文摘要，支持一键导出 Schema JSON，用于后续前端工程或论文附录。
 
-## 🏗️ 技术栈
+## 🧱 技术架构
 
-### 后端
-- **Flask** - Python Web 框架
-- **Flask-CORS** - 跨域支持
-- **Requests** - HTTP 客户端
-- **google-generativeai** - Gemini API SDK
+| 层 | 技术 | 说明 |
+| --- | --- | --- |
+| 前端 | React 18 + Axios + 自定义 CSS | 三列工作台：任务输入 / 预览 & 编辑 / 调试视图 |
+| 后端 | Flask + 内存 SessionManager | Schema 生成器 + 指令解析 / diff 引擎 |
+| 数据 | JSON Schema | Page/Section/Component、PriorityQueue、UI-diff 结构均在 `backend/data` 内定义模板 |
 
-### 前端
-- **React 18** - 用户界面库
-- **Axios** - HTTP 客户端
-- **CSS3** - 现代样式设计
-
-## 📋 先决条件
-
-- Python 3.8+
-- Node.js 16+
-- npm 或 yarn
-- 至少一个 LLM API 密钥（OpenRouter、OpenAI、Gemini 或 SiliconFlow）
+核心模块：
+- `backend/schema_generator.py`：根据场景模板与任务文本生成 Stage plan、PriorityQueue 与 UI Schema。
+- `backend/diff_engine.py`：基于规则的指令解析器，输出 Add/Remove/Update/Reorder diff，并负责冲突处理。
+- `backend/session_manager.py`：管理上下文、Schema、undo 栈和 diff 历史。
 
 ## 🚀 快速开始
 
-### 1. 克隆或下载项目后
+1. **安装依赖**
+   ```bash
+   cd backend && pip install -r requirements.txt
+   cd ../frontend && npm install
+   ```
+2. **启动服务**
+   ```bash
+   # 终端 A
+   cd backend
+   python app.py  # 默认 http://localhost:5000
 
-```bash
-cd html-editor-app
+   # 终端 B
+   cd frontend
+   npm start  # 默认 http://localhost:3000
+   ```
+   > 也可执行 `./start.sh` 同时拉起前后端。
+
+## 🧭 使用流程
+
+1. **配置上下文（F1）**
+   - 粘贴任务描述（可包含多段文本）
+   - 选择 Persona & 场景模板，或补充 Persona 的关注点
+   - 如需自定义组件库，粘贴数组 JSON；否则使用内置库
+   - 点击“同步上下文”后，可看到 Persona / 任务 / 组件统计摘要
+
+2. **生成界面族（F2）**
+   - 点击“生成界面族”，系统按照 Stage 模板拆分 Page
+   - 每个 Page 自动划分 Section，并从组件库检索匹配组件
+   - 预览区展示 12 栅格布局、每个 Section 的组件占位及信息绑定
+
+3. **自然语言编辑（F3/F4）**
+   - 在指令框输入需求，例如：
+     - “在监控页面顶部增加一个 KPI 卡片突出系统健康度”
+     - “把告警列表移到右侧栏并缩窄宽度”
+     - “让所有过滤条改成双行布局保持一致”
+   - 系统会生成 UI-diff，自动高亮受影响组件，并记录日志/警告
+   - 支持“撤销一步”和“导出 Schema”
+
+4. **调试视图（F5）**
+   - 右侧面板显示 Priority Queue 前 10 个信息项
+   - 展示 UI-diff 历史记录、角色/场景摘要，便于论文实验记录
+
+## 📦 数据结构速览
+
+```ts
+type Component = {
+  id: string;
+  role?: string;           // GlobalFilterBar, AlertTable...
+  type: string;            // Table / Chart / CardRow...
+  dataRole: string;
+  layout: { colSpan: number; order: number };
+  style: { density?: 'low'|'medium'|'high'; emphasis?: 'normal'|'highlight' };
+  infoRefs: string[];
+};
+
+type Section = {
+  id: string;
+  role: 'header'|'main'|'sidebar'|'footer';
+  layout: { row: number; colStart: number; colSpan: number; order: number };
+  components: Component[];
+};
+
+type Page = {
+  id: string;
+  name: string;
+  stage: string;
+  description: string;
+  sections: Section[];
+};
+
+type UIDiff = {
+  scope: 'current_page' | 'same_role_across_pages';
+  operations: Operation[];
+};
 ```
 
-### 2. 配置 API 密钥
+更多模板与默认组件参考 `backend/data/defaults.py`。
 
-复制环境变量模板并填入您的 API 密钥：
+## 🧪 指令解析覆盖的语义
 
-```bash
-cp .env.example .env
-```
+- `add` / `增加` / `新增` → 在指定页面 & 区域添加组件并生成默认 layout
+- `delete` / `删除` / `移除` → 根据角色或上下文定位组件并移除
+- `move` / `移动` / `挪到` → 通过新的 section 关键字（顶部 / 右侧等）移动组件
+- `缩小` / `放大` → 调整组件 `colSpan` 并适配 12 栅格
+- 含“所有/一致/跨页面” → 自动进入 `same_role_across_pages` 范围，复制 style/layout
 
-编辑 `.env` 文件，至少填入一个 API 密钥：
+若指令无法解析会给出 warning，避免 silent failure。
 
-```env
-# 选择您有密钥的服务
-OPENROUTER_API_KEY=your_key_here
-# 或
-OPENAI_API_KEY=your_key_here
-# 或
-GOOGLE_API_KEY=your_key_here
-# 或
-SILICONFLOW_API_KEY=your_key_here
-```
+## 🏁 目前限制（与需求文档一致）
 
-### 3. 安装后端依赖
+- 仅支持 Web 桌面端栅格布局，不包含 XR/移动端
+- 指令解析基于规则+模板，未接入真实 LLM（可在 V1.1 接入 LoRA / Instruct4Edit）
+- 布局优化为启发式得分，接口层面预留 NSGA-II 可能性
+- 数据暂存于内存，关闭进程后会话重置
 
-```bash
-cd backend
-pip install -r requirements.txt
-```
-
-### 4. 安装前端依赖
-
-```bash
-cd ../frontend
-npm install
-```
-
-### 5. 启动应用
-
-#### 方式一：使用启动脚本（推荐）
-
-在项目根目录运行：
-
-```bash
-chmod +x start.sh
-./start.sh
-```
-
-#### 方式二：手动启动
-
-**启动后端：**
-
-```bash
-cd backend
-python app.py
-```
-
-后端将在 `http://localhost:8000` 运行
-
-**启动前端（新终端）：**
-
-```bash
-cd frontend
-npm start
-```
-
-前端将在 `http://localhost:3000` 自动打开浏览器
-
-## 📖 使用指南
-
-### 基本工作流程
-
-1. **上传 HTML 文件**
-   - 点击或拖放 HTML 文件到上传区域
-   - 原始页面将在左侧预览
-
-2. **选择 API 提供商和模型**
-   - 在下拉菜单中选择您配置了密钥的提供商
-   - 选择具体的模型（如 GPT-4o-mini、Gemini 等）
-
-3. **输入修改指令**
-   - 用自然语言描述您想要的修改
-   - 例如："将背景色改为深色"、"增大标题字体"
-   - 可以使用快速模板或自定义输入
-
-4. **执行修改**
-   - 点击"执行修改"按钮或按 Ctrl+Enter
-   - 等待 AI 处理（通常 10-30 秒）
-   - 修改后的页面将在右侧显示
-
-5. **查看历史和回退**
-   - 所有修改都会记录在历史面板
-   - 点击"回退"可以恢复到任意历史版本
-   - 点击"下载"可以保存特定版本
-
-### 指令示例
-
-**好的指令（推荐）：**
-- ✅ "将主标题字体大小增加 50%"
-- ✅ "把背景颜色改成柔和的浅蓝色"
-- ✅ "为所有按钮添加 10px 的圆角"
-- ✅ "增加段落之间的间距到 20px"
-- ✅ "将导航栏设置为固定在顶部"
-
-**避免的指令：**
-- ❌ "修改代码"（太模糊）
-- ❌ "让它更好看"（主观且不具体）
-- ❌ "改"（没有说明改什么）
-
-## 🔧 API 配置指南
-
-### OpenRouter
-
-1. 访问 [https://openrouter.ai/](https://openrouter.ai/)
-2. 注册账号并获取 API 密钥
-3. 将密钥填入 `OPENROUTER_API_KEY`
-
-**推荐模型：**
-- `openai/gpt-4o-mini` - 快速且经济
-- `anthropic/claude-3.5-sonnet` - 高质量输出
-- `google/gemini-2.0-flash-exp:free` - 免费选项
+欢迎在 `frontend/src/components/*` 或 `backend/*.py` 中扩展更多场景、组件与指令规则。
 
 ### OpenAI
 
@@ -317,4 +280,3 @@ A: 建议：
 ---
 
 **享受智能化的网页编辑体验！** 🎉
-
